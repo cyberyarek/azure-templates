@@ -1,0 +1,1061 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePaddingLength": {
+            "defaultValue" : 3,
+            "type"         : "Int"
+        },
+        "webTierName": {
+            "defaultValue" : "web",
+            "type"         : "String"
+        },
+        "locationPrimary": {
+            "defaultValue" : "australiasoutheast",
+            "type"         : "String"
+        },
+        "locationSecondary": {
+            "defaultValue" : "australiasouth",
+            "type"         : "String"
+        },
+        "webTierVmCount": {
+            "defaultValue" : 2,
+            "minValue"     : 1,
+            "type"         : "Int"
+        },
+        "vnetName": {
+            "defaultValue" : "vnet",
+            "type"         : "String"
+        },
+        "vnetAddressPrefixList": {
+            "defaultValue" : "10.1.0.0/16",
+            "type"         : "String"
+        },
+        "vnetWebSubnetAddressPrefix": {
+            "defaultValue" : "10.1.1.0/24",
+            "type"         : "String"
+        },
+        "sqlServerNameSuffix": {
+            "defaultValue" : "lhsql001",
+            "type"         : "String"
+        },
+        "sqlDbName": {
+            "defaultValue" : "lhDB1",
+            "type"         : "String"
+        },
+        "sqlDbEdition": {
+            "defaultValue" : "Standard",
+            "type"         : "String"
+        },
+        "sqlDbKind": {
+            "defaultValue" : "v12.0",
+            "type"         : "String"
+        },
+        "sqlDbAdminUsername": {
+            "defaultValue" : "ServerAdmin",
+            "type"         : "String"
+        },
+        "sqlDbAdminPassword": {
+            "defaultValue" : "serverSQLADM1N",
+            "type"         : "String"
+        },
+        "sqlDbServiceObjective": {
+            "defaultValue" : "S0",
+            "type"         : "String"
+        },
+        "bootDiagnoticsSuffix": {
+            "defaultValue" : "bootdiagnostics",
+            "type"         : "String"
+        },
+        "publicIpDnsSuffix": {
+            "defaultValue" : "lhpip",
+            "type"         : "String"
+        },
+        "vmSize": {
+            "defaultValue" : "Standard_D1",
+            "type"         : "String"
+        },
+        "vmManagedOsDiskType": {
+            "defaultValue" : "Standard_LRS",
+            "type"         : "String"
+        },
+        "vmAdminUsername": {
+            "defaultValue" : "lhadmin",
+            "type"         : "String"
+        },
+        "vmAdminPassword": {
+            "defaultValue" : "ASDFqwer1234@;:.",
+            "type"         : "String"
+        },
+        "dscModulesUrl": {
+            "type"         : "string",
+            "defaultValue" : "https://github.com/Azure/azure-quickstart-templates/raw/master/dsc-extension-iis-server-windows-vm/ContosoWebsite.ps1.zip",
+            "metadata"     : {
+                "description": "URL for the DSC configuration module. NOTE: Can be a Github url(raw) to the zip file"
+            }
+        },
+        "dscConfigurationScript": {
+            "type"         : "string",
+            "defaultValue" : "ContosoWebsite.ps1",
+            "metadata"     : {
+                "description": "DSC configuration script"
+            }
+        },
+        "dscConfigurationFunction": {
+            "type"         : "string",
+            "defaultValue" : "ContosoWebsite",
+            "metadata"     : {
+                "description": "DSC configuration function to call"
+            }
+        }
+        
+    },
+    "variables": {
+        "vBootDiagnosticsAccount"           : "[replace(replace(concat(resourceGroup().name, parameters('bootDiagnoticsSuffix')),'-',''),'_','')]",
+        
+        "vPublicIpDnsLabel"                 : "[replace(replace(concat(resourceGroup().name, parameters('publicIpDnsSuffix')),'-',''),'_','')]",
+        
+
+        "vWebVmLoadBalancer"                : "[concat(parameters('webTierName'), '-lb')]",
+        "vWebVmLoadBalancerFE"              : "[concat(variables('vWebVmLoadBalancer'),'-fe')]",
+        "vWebVmLoadBalancerBE"              : "[concat(variables('vWebVmLoadBalancer'),'-be')]",
+        "vWebVmLoadBalancerProbe"           : "[concat(variables('vWebVmLoadBalancer'),'-tcp-probe-80')]",
+        "vWebVmLoadBalancerNatInRule"       : "[concat(variables('vWebVmLoadBalancer'),'-nat-in')]",
+        "vWebVmLoadBalancerNatInRuleRdp"    : "[concat(variables('vWebVmLoadBalancerNatInRule'),'-rdp')]",
+        "vWebVmLoadBalancerPublicIP"        : "[concat(variables('vWebVmLoadBalancer'),'-pip')]",
+
+        "vWebVmNamePrefix"                  : "[concat(parameters('webTierName'), '-vm')]",
+        "vWebVmOsDiskPrefix"                : "[concat(variables('vWebVmNamePrefix'), '-osDisk')]",
+        "vWebVmAvailabilitySet"             : "[concat(variables('vWebVmNamePrefix'), '-as')]",
+
+        "vWebVmNicPrefix"                   : "[concat(parameters('webTierName'), '-nic')]",
+        "vWebVmDscExtensionName"                 : "dscExtension",
+        
+        "vSqlServerName"                    : "[replace(replace(concat(resourceGroup().name, parameters('sqlServerNameSuffix')),'-',''),'_','')]",
+        "vSqlFireWallRulesName"             : "[concat(variables('vSqlServerName'), '/allowedIPs')]",
+
+        "vVnetWebSubnetName"                : "[concat(parameters('vnetName'), '-web')]",
+        "vVnetWebSubnetNSG"                 : "[concat(variables('vVnetWebSubnetName'), '-NSG')]",
+        "vVnetWebSubnetComponents"          : "[split(first(split(parameters('vnetWebSubnetAddressPrefix'),'/')),'.')]",
+        "vVnetWebSubnetAddress"             : {
+            "A" : "[variables('vVnetWebSubnetComponents')[0]]",
+            "B" : "[variables('vVnetWebSubnetComponents')[1]]",
+            "C" : "[variables('vVnetWebSubnetComponents')[2]]",
+            "D" : "[    add(4,int(variables('vVnetWebSubnetComponents')[3]))]",
+            "L" : "[add(add(4,int(variables('vVnetWebSubnetComponents')[3])), sub(parameters('webTierVmCount'),1))]"
+        }
+
+
+    },
+    "resources": [
+        {
+            "type"       : "Microsoft.Network/virtualNetworks",
+            "name"       : "[parameters('vnetName')]",
+            "apiVersion" : "2017-03-01",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "addressSpace": {
+                    "addressPrefixes": "[split(parameters('vnetAddressPrefixList'),',')]"
+                },
+                "dhcpOptions": {
+                    "dnsServers": []
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vVnetWebSubnetName')]",
+                        "properties": {
+                            "addressPrefix"        : "[parameters('vnetWebSubnetAddressPrefix')]",
+                            "networkSecurityGroup" : {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vVnetWebSubnetNSG'))]"
+                            }
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": []
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vVnetWebSubnetNSG'))]"
+            ]
+        },
+        {
+            "type"       : "Microsoft.Network/networkSecurityGroups",
+            "name"       : "[variables('vVnetWebSubnetNSG')]",
+            "apiVersion" : "2017-03-01",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "securityRules": [
+                    {
+                        "name": "in-allow-http",
+                        "properties": {
+                            "description"              : "Allow HTTP",
+                            "protocol"                 : "Tcp",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "80",
+                            "sourceAddressPrefix"      : "Internet",
+                            "destinationAddressPrefix" : "*",
+                            "access"                   : "Allow",
+                            "priority"                 : 110,
+                            "direction"                : "Inbound"
+                        }
+                    },
+                    {
+                        "name": "in-allow-https",
+                        "properties": {
+                            "description"              : "Allow HTTP",
+                            "protocol"                 : "Tcp",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "443",
+                            "sourceAddressPrefix"      : "Internet",
+                            "destinationAddressPrefix" : "*",
+                            "access"                   : "Allow",
+                            "priority"                 : 111,
+                            "direction"                : "Inbound"
+                        }
+                    },
+                    {
+                        "name": "in-allow-rdp",
+                        "properties": {
+                            "description"               : "Allow RDP",
+                            "protocol"                  : "Tcp",
+                            "sourcePortRange"           : "*",
+                            "destinationPortRange"      : "3389",
+                            "sourceAddressPrefix"       : "Internet",
+                            "destinationAddressPrefix"  : "*",
+                            "access"                    : "Allow",
+                            "priority"                  : 112,
+                            "direction"                 : "Inbound"
+                        }
+                    },
+                    {
+                        "name": "in-deny-all",
+                        "properties": {
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "Internet",
+                            "destinationAddressPrefix" : "*",
+                            "access"                   : "Deny",
+                            "priority"                 : 398,
+                            "direction"                : "Inbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-SQL",
+                        "properties": {
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "1433",
+                            "destinationPortRange"     : "1433",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "Internet",
+                            "access"                   : "Allow",
+                            "priority"                 : 199,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-13.70.128.0-18",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 13.70.128.0/18",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "13.70.128.0/18",
+                            "access"                   : "Allow",
+                            "priority"                 : 200,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.195.0-28",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.195.0/28",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.195.0/28",
+                            "access"                   : "Allow",
+                            "priority"                 : 201,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-13.73.96.0-19",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 13.73.96.0/19",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "13.73.96.0/19",
+                            "access"                   : "Allow",
+                            "priority"                 : 202,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-13.77.0.0-18",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 13.77.0.0/18",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "13.77.0.0/18",
+                            "access"                   : "Allow",
+                            "priority"                 : 203,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-23.101.224.0-19",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 23.101.224.0/19",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "23.101.224.0/19",
+                            "access"                   : "Allow",
+                            "priority"                 : 204,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-40.115.64.0-19",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 40.115.64.0/19",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "40.115.64.0/19",
+                            "access"                   : "Allow",
+                            "priority"                 : 205,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-40.127.64.0-19",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 40.127.64.0/19",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "40.127.64.0/19",
+                            "access"                   : "Allow",
+                            "priority"                 : 206,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.189.192.0-21",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.189.192.0/21",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.189.192.0/21",
+                            "access"                   : "Allow",
+                            "priority"                 : 207,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.189.200.0-24",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.189.200.0/24",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.189.200.0/24",
+                            "access"                   : "Allow",
+                            "priority"                 : 208,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.189.201.0-28",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.189.201.0/28",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.189.201.0/28",
+                            "access"                   : "Allow",
+                            "priority"                 : 209,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.189.208.0-20",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.189.208.0/20",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.189.208.0/20",
+                            "access"                   : "Allow",
+                            "priority"                 : 210,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.189.224.0-20",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.189.224.0/20",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.189.224.0/20",
+                            "access"                   : "Allow",
+                            "priority"                 : 211,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.189.240.0-24",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.189.240.0/24",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.189.240.0/24",
+                            "access"                   : "Allow",
+                            "priority"                 : 212,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.189.248.0-21",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.189.248.0/21",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.189.248.0/21",
+                            "access"                   : "Allow",
+                            "priority"                 : 213,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.239.132.0-25",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.239.132.0/25",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.239.132.0/25",
+                            "access"                   : "Allow",
+                            "priority"                 : 214,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.239.132.128-27",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.239.132.128/27",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.239.132.128/27",
+                            "access"                   : "Allow",
+                            "priority"                 : 215,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.243.64.0-19",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.243.64.0/19",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.243.64.0/19",
+                            "access"                   : "Allow",
+                            "priority"                 : 216,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.243.96.0-20",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.243.96.0/20",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.243.96.0/20",
+                            "access"                   : "Allow",
+                            "priority"                 : 217,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.243.112.0-21",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.243.112.0/21",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.243.112.0/21",
+                            "access"                   : "Allow",
+                            "priority"                 : 218,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.243.120.0-24",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.243.120.0/24",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.243.120.0/24",
+                            "access"                   : "Allow",
+                            "priority"                 : 219,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.245.20.0-26",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.245.20.0/26",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.245.20.0/26",
+                            "access"                   : "Allow",
+                            "priority"                 : 220,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.245.20.80-28",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.245.20.80/28",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.245.20.80/28",
+                            "access"                   : "Allow",
+                            "priority"                 : 221,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.245.20.96-28",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.245.20.96/28",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.245.20.96/28",
+                            "access"                   : "Allow",
+                            "priority"                 : 222,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-52.253.204.0-22",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 52.253.204.0/22",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "52.253.204.0/22",
+                            "access"                   : "Allow",
+                            "priority"                 : 223,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-104.46.28.0-24",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 104.46.28.0/24",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "104.46.28.0/24",
+                            "access"                   : "Allow",
+                            "priority"                 : 224,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-104.209.64.0-20",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 104.209.64.0/20",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "104.209.64.0/20",
+                            "access"                   : "Allow",
+                            "priority"                 : 225,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.160.0-19",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.160.0/19",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.160.0/19",
+                            "access"                   : "Allow",
+                            "priority"                 : 226,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.192.0-25",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.192.0/25",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.192.0/25",
+                            "access"                   : "Allow",
+                            "priority"                 : 227,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.192.128-27",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.192.128/27",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.192.128/27",
+                            "access"                   : "Allow",
+                            "priority"                 : 228,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.192.160-28",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.192.160/28",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.192.160/28",
+                            "access"                   : "Allow",
+                            "priority"                 : 229,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.192.192-27",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.192.192/27",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.192.192/27",
+                            "access"                   : "Allow",
+                            "priority"                 : 230,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.193.0-24",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.193.0/24",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.193.0/24",
+                            "access"                   : "Allow",
+                            "priority"                 : 231,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-allow-AzureDC-191.239.194.0-24",
+                        "properties": {
+                            "description"              : "Allow outbound to Azure 191.239.194.0/24",
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "*",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "191.239.194.0/24",
+                            "access"                   : "Allow",
+                            "priority"                 : 232,
+                            "direction"                : "Outbound"
+                        }
+                    },
+                    {
+                        "name": "out-deny-Internet",
+                        "properties": {
+                            "protocol"                 : "*",
+                            "sourcePortRange"          : "*",
+                            "destinationPortRange"     : "80",
+                            "sourceAddressPrefix"      : "VirtualNetwork",
+                            "destinationAddressPrefix" : "Internet",
+                            "access"                   : "Deny",
+                            "priority"                 : 4001,
+                            "direction"                : "Outbound"
+                        }
+                    }
+                    
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "copy": {
+                  "name"  : "webTierVmCopy",
+                  "count" : "[parameters('webTierVmCount')]",
+            },
+            "name"       : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0'))]",
+            "apiVersion" : "2016-04-30-preview",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('vWebVmAvailabilitySet'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher" : "MicrosoftWindowsServer",
+                        "offer"     : "WindowsServer",
+                        "sku"       : "2012-R2-Datacenter",
+                        "version"   : "latest"
+                    },
+                    "osDisk": {
+                        "osType"       : "Windows",
+                        "name"         : "[concat(variables('vWebVmOsDiskPrefix'), '-', padleft(copyIndex(1), parameters('namePaddingLength'), '0'))]",
+                        "createOption" : "FromImage",
+                        "caching"      : "ReadWrite",
+                        "managedDisk"  : {
+                            "storageAccountType": "[parameters('vmManagedOsDiskType')]"
+                        }
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[replace(concat(variables('vWebVmNamePrefix'),padleft(copyIndex(1), parameters('namePaddingLength'), '0')),'-','')]",
+                    "adminUsername": "[parameters('vmAdminUsername')]",
+                    "adminPassword": "[parameters('vmAdminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vWebVmNicPrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'), '0')))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('https', '://', variables('vBootDiagnosticsAccount'), '.blob.core.windows.net', '/')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/availabilitySets',  variables('vWebVmAvailabilitySet'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vWebVmNicPrefix'),   '-',padleft(copyIndex(1), parameters('namePaddingLength'), '0')))]",
+                "[resourceId('Microsoft.Storage/storageAccounts',   variables('vBootDiagnosticsAccount'))]"
+            ]
+        },
+        {
+            "type"       : "Microsoft.Compute/availabilitySets",
+            "name"       : "[variables('vWebVmAvailabilitySet')]",
+            "sku"        : {
+                "name" : "Aligned"
+            },
+            "apiVersion" : "2016-04-30-preview",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "platformUpdateDomainCount" : 5,
+                "platformFaultDomainCount"  : 2,
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "type"       : "Microsoft.Network/loadBalancers",
+            "name"       : "[variables('vWebVmLoadBalancer')]",
+            "apiVersion" : "2017-03-01",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[variables('vWebVmLoadBalancerFE')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vWebVmLoadBalancerPublicIP'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('vWebVmLoadBalancerBE')]"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name"       : "[concat(variables('vWebVmLoadBalancer'),'-rule-tcp')]",
+                        "properties" : {
+                            "protocol"             : "Tcp",
+                            "frontendPort"         : 80,
+                            "backendPort"          : 80,
+                            "enableFloatingIP"     : false,
+                            "idleTimeoutInMinutes" : 4,
+                            "loadDistribution"     : "Default",
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/frontendIPConfigurations/',variables('vWebVmLoadBalancerFE'))]"
+                            },
+                            "backendAddressPool"   : {
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/backendAddressPools/',variables('vWebVmLoadBalancerBE'))]"
+                            },
+                            "probe"                : {
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/probes/',variables('vWebVmLoadBalancerProbe'))]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name"       : "[variables('vWebVmLoadBalancerProbe')]",
+                        "properties" : {
+                            "protocol"          : "Tcp",
+                            "port"              : 80,
+                            "intervalInSeconds" : 15,
+                            "numberOfProbes"    : 2
+                        }
+                    }
+                ],
+                "copy": [{
+                    "name": "inboundNatRules",
+                    "count" : "[parameters('webTierVmCount')]",
+                    "input" : {
+                        "name": "[concat(variables('vWebVmLoadBalancerNatInRuleRdp'), padleft(copyIndex('inboundNatRules',1), parameters('namePaddingLength'), '0'))]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/frontendIPConfigurations/',variables('vWebVmLoadBalancerFE'))]"
+                            },
+                            "frontendPort" : "[add(3440, copyIndex('inboundNatRules',1))]",
+                            "backendPort"  : 3389,
+                            "protocol"     : "Tcp"
+                        }
+                    }
+                }],
+                "outboundNatRules": [],
+                "inboundNatPools": []
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('vWebVmLoadBalancerPublicIP'))]"
+            ]
+        },
+        {
+            "type"       : "Microsoft.Network/networkInterfaces",
+            "copy": {
+                  "name"  : "webTierNicCopy",
+                  "count" : "[parameters('webTierVmCount')]",
+            },
+            "name"       : "[concat(variables('vWebVmNicPrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'), '0'))]",
+            "apiVersion" : "2017-03-01",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress"          : "[concat(variables('vVnetWebSubnetAddress').A, '.',variables('vVnetWebSubnetAddress').B, '.', variables('vVnetWebSubnetAddress').C, '.', add(variables('vVnetWebSubnetAddress').D, copyIndex(0)))]",
+                            "privateIPAllocationMethod" : "Dynamic",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')), '/subnets/', variables('vVNetWebSubnetName'))]"
+                            },
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vWebVmLoadBalancer')), '/backendAddressPools/', variables('vWebVmLoadBalancerBE'))]"
+                                }
+                            ],
+                            "loadBalancerInboundNatRules": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('vWebVmLoadBalancer')), '/inboundNatRules/', variables('vWebVmLoadBalancerNatInRuleRdp'), padleft(copyIndex(1), parameters('namePaddingLength'), '0'))]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+                "[resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer'))]"
+            ]
+        },
+        {
+            "type"       : "Microsoft.Network/publicIPAddresses",
+            "name"       : "[variables('vWebVmLoadBalancerPublicIP')]",
+            "apiVersion" : "2017-03-01",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "publicIPAllocationMethod" : "Static",
+                "idleTimeoutInMinutes"     : 4,
+                "dnsSettings"              : {
+                    "domainNameLabel": "[variables('vPublicIpDnsLabel')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type"       : "Microsoft.Storage/storageAccounts",
+            "name"       : "[variables('vBootDiagnosticsAccount')]",
+            "kind"       : "Storage",
+            "sku"        : {
+                "name" : "Standard_GRS",
+                "tier" : "Standard"
+            },
+            "apiVersion" : "2016-01-01",
+            "location"   : "[parameters('locationPrimary')]",
+            "tags"       : {},
+            "scale"      : null,
+            "properties" : {},
+            "dependsOn"  : []
+        },
+        {
+            "type"       : "Microsoft.Compute/virtualMachines/extensions",
+            "copy": {
+                  "name"  : "webTierVmBGInfoExtensionCopy",
+                  "count" : "[parameters('webTierVmCount')]",
+            },
+            "name"       : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'), '0'), '/BGInfo')]",
+            "apiVersion" : "2016-04-30-preview",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "publisher": "Microsoft.Compute",
+                "type": "BGInfo",
+                "typeHandlerVersion": "2.1",
+                "autoUpgradeMinorVersion": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'), '0')))]"
+            ]
+        },
+        {
+            "type"       : "Microsoft.Sql/servers",
+            "name"       : "[variables('vSqlServerName')]",
+            "kind"       : "[parameters('sqlDbKind')]",
+            "apiVersion" : "2014-04-01-preview",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "administratorLogin"         : "[parameters('sqlDbAdminUsername')]",
+                "administratorLoginPassword" : "[parameters('sqlDbAdminPassword')]",
+            },
+            "resources"  : [
+                {
+                    "name": "[parameters('sqlDbName')]",
+                    "type": "databases",
+                    "apiVersion": "2014-04-01-preview",
+                    "location": "[parameters('locationPrimary')]",
+                    "properties": {
+                        "edition": "[parameters('sqlDbEdition')]",
+                        "requestedServiceObjectiveName": "[parameters('sqlDbServiceObjective')]"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('vSqlServerName'))]"
+                    ]
+                }
+            ],
+            "dependsOn"  : []
+        },
+        {
+            "type"       : "Microsoft.Sql/servers/firewallRules",
+            "kind"       : "v12.0",
+            "name"       : "[variables('vSqlFireWallRulesName')]",
+            "apiVersion" : "2014-04-01-preview",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "startIpAddress" : "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('vWebVmLoadBalancerPublicIP'))).ipAddress]",
+                "endIpAddress"   : "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('vWebVmLoadBalancerPublicIP'))).ipAddress]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('vSqlServerName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "copy": {
+                  "name"  : "webTierVmCopy",
+                  "count" : "[parameters('webTierVmCount')]",
+            },
+            "name"       : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0'),'/', variables('vWebVmDscExtensionName'))]",
+            "apiVersion" : "2015-06-15",
+            "location"   : "[parameters('locationPrimary')]",
+            "dependsOn"  : [
+                "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0')))]"
+            ],
+            "properties": {
+                "publisher"               : "Microsoft.Powershell",
+                "type"                    : "DSC",
+                "typeHandlerVersion"      : "2.19",
+                "autoUpgradeMinorVersion" : true,
+                "settings": {
+                    "url"        : "[parameters('dscModulesUrl')]",
+                    "script"     : "[parameters('dscConfigurationScript')]",
+                    "function"   : "[parameters('dscConfigurationFunction')]",
+                    "Properties" : {
+                        "MachineName" : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0'))]"
+                    }
+                },
+                "protectedSettings": null
+            }
+        }
+    ]
+}
