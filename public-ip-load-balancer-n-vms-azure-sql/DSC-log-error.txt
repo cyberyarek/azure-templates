@@ -1,0 +1,98 @@
+[2017-07-14 14:44:50Z] The DSC Extension was installed successfully
+[2017-07-14 14:44:50Z] Setting install status to 'Installed' (HKLM:\\SOFTWARE\\Microsoft\\Azure\\DSC\\2.26.1.0\\InstallStatus)
+[2017-07-14 14:44:53Z] AgentID is FE6D87D2-68A2-11E7-80CD-000D3AE0DC96 ...
+[2017-07-14 14:44:53Z] VMUUId is 4100468D-B55E-4150-A2EF-B1C10234CCDF ...
+[2017-07-14 14:44:53Z] Loading Event Source assembly for telemetry...
+[2017-07-14 14:44:55Z] Loading VM agent telemetry assemblies ...
+[2017-07-14 14:44:55Z] [MDS Telemetry] Invoking [Install][End] event for telemetry.[Status]: Success [Message]: {
+    \"WindowsEditionId\":  \"ServerDatacenter\",
+    \"ConfigScript\":  \"ContosoWebsite.ps1\",
+    \"VMUUID\":  \"4100468D-B55E-4150-A2EF-B1C10234CCDF\",
+    \"ErrorID\":  \"\",
+    \"Cloud\":  \"Azure\",
+    \"ConfigUrl\":  \"https://github.com/cyberyarek/azure-templates/raw/master/public-ip-load-balancer-n-vms-azure-sql/ContosoWebsite.ps1.zip\",
+    \"ConfigName\":  \"ContosoWebsite\",
+    \"WmfVersion\":  \"5.1\"
+}
+[2017-07-14 14:44:55Z] Updating execution status (HKLM:\\SOFTWARE\\Microsoft\\Azure\\DSC\\2.26.1.0\\Status)
+[2017-07-14 14:44:55Z] Transitioning to ProcessConfiguration state ...
+[2017-07-14 14:44:55Z] Getting handler execution status HKLM:\\SOFTWARE\\Microsoft\\Azure\\DSC\\2.26.1.0\\Status ...
+[2017-07-14 14:44:55Z] Getting handler execution status HKLM:\\SOFTWARE\\Microsoft\\Azure\\DSC\\2.26.1.0\\Status ...
+[2017-07-14 14:44:55Z] Settings handler status to 'transitioning' (C:\\Packages\\Plugins\\Microsoft.Powershell.DSC\\2.26.1.0\\Status\\0.status)
+[2017-07-14 14:44:55Z] Applying DSC configuration:
+[2017-07-14 14:44:55Z]     Sequence Number:              0
+[2017-07-14 14:44:55Z]     Configuration URL:            https://github.com/cyberyarek/azure-templates/raw/master/public-ip-load-balancer-n-vms-azure-sql/ContosoWebsite.ps1.zip
+[2017-07-14 14:44:55Z]     Configuration Script:         ContosoWebsite.ps1
+[2017-07-14 14:44:55Z]     Configuration Function:       ContosoWebsite
+[2017-07-14 14:44:55Z] Creating Working directory: C:\\Packages\\Plugins\\Microsoft.Powershell.DSC\\2.26.1.0\\bin\\..\\DSCWork\\ContosoWebsite.ps1.0
+[2017-07-14 14:44:55Z] Downloading configuration package
+[2017-07-14 14:44:55Z] Downloading https://github.com/cyberyarek/azure-templates/raw/master/public-ip-load-balancer-n-vms-azure-sql/ContosoWebsite.ps1.zip to C:\\Packages\\Plugins\\Microsoft.Powershell.DSC\\2.26.1.0\\bin\\..\\DSCWork\\ContosoWebsite.ps1.0\\ContosoWebsite.ps1.zip
+[2017-07-14 14:45:12Z] Extracting ContosoWebsite.ps1.zip
+[2017-07-14 14:45:13Z] Installing custom DSC resource modules to C:\\Program Files\\WindowsPowerShell\\Modules
+[2017-07-14 14:45:13Z] Installing custom DSC resource module ContosoWebsite.ps1
+[2017-07-14 14:45:13Z] Copying C:\\Packages\\Plugins\\Microsoft.Powershell.DSC\\2.26.1.0\\DSCWork\\ContosoWebsite.ps1.0\\ContosoWebsite.ps1 to C:\\Program Files\\WindowsPowerShell\\Modules\\ContosoWebsite.ps1 ...
+[2017-07-14 14:45:13Z] Looking for the definition of the configuration function.
+[2017-07-14 14:45:13Z] Executing C:\\Packages\\Plugins\\Microsoft.Powershell.DSC\\2.26.1.0\\bin\\..\\DSCWork\\ContosoWebsite.ps1.0\\ContosoWebsite.ps1
+[2017-07-14 14:45:13Z] [MDS Telemetry] Invoking [Install][End] event for telemetry.[Status]: Failure [Message]: {
+    \"WindowsEditionId\":  \"ServerDatacenter\",
+    \"ConfigScript\":  \"ContosoWebsite.ps1\",
+    \"VMUUID\":  \"4100468D-B55E-4150-A2EF-B1C10234CCDF\",
+    \"ErrorID\":  \"DscHandlerTerminatingError\",
+    \"Cloud\":  \"Azure\",
+    \"ConfigUrl\":  \"https://github.com/cyberyarek/azure-templates/raw/master/public-ip-load-balancer-n-vms-azure-sql/ContosoWebsite.ps1.zip\",
+    \"ConfigName\":  \"ContosoWebsite\",
+    \"WmfVersion\":  \"5.1\"
+}
+[2017-07-14 14:45:13Z] [ERROR] An error occurred while executing script or module 'ContosoWebsite.ps1':  The term 'C:\\Packages\\Plugins\\Microsoft.Powershell.DSC\\2.26.1.0\\bin\\..\\DSCWork\\ContosoWebsite.ps1.0\\ContosoWebsite.ps1' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+[2017-07-14 14:45:13Z] {
+    \"Exception\":  {
+                      \"Message\":  \"An error occurred while executing script or module \\u0027ContosoWebsite.ps1\\u0027:  The term \\u0027C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\..\\\\DSCWork\\\\ContosoWebsite.ps1.0\\\\ContosoWebsite.ps1\\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.\",
+                      \"Data\":  {
+                                   \"Code\":  1100
+                               },
+                      \"InnerException\":  null,
+                      \"TargetSite\":  null,
+                      \"StackTrace\":  null,zi
+                      \"HelpLink\":  null,
+                      \"Source\":  null,
+                      \"HResult\":  -2146233088
+                  },
+    \"TargetObject\":  null,
+    \"CategoryInfo\":  {
+                         \"Category\":  0,
+                         \"Activity\":  \"\",
+                         \"Reason\":  \"Exception\",
+                         \"TargetName\":  \"\",
+                         \"TargetType\":  \"\"
+                     },
+    \"FullyQualifiedErrorId\":  \"DscHandlerTerminatingError\",
+    \"ErrorDetails\":  null,
+    \"InvocationInfo\":  {
+                           \"MyCommand\":  null,
+                           \"BoundParameters\":  {
+
+                                               },
+                           \"UnboundArguments\":  [
+
+                                                ],
+                           \"ScriptLineNumber\":  1023,
+                           \"OffsetInLine\":  9,
+                           \"HistoryId\":  -1,
+                           \"ScriptName\":  \"C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandlerConfigurationManager.psm1\",
+                           \"Line\":  \"        throw New-HandlerTerminatingError $DSC_Status.ArgumentError (\\\"An error occurred while executing script or module \\u0027{0}\\u0027:  {1}\\\" -f $ConfigurationContainer, $_)\\n\",
+                           \"PositionMessage\":  \"At C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandlerConfigurationManager.psm1:1023 char:9\\r\\n+         throw New-HandlerTerminatingError $DSC_Status.ArgumentError ( ...\\r\\n+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\",
+                           \"PSScriptRoot\":  \"C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\",
+                           \"PSCommandPath\":  \"C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandlerConfigurationManager.psm1\",
+                           \"InvocationName\":  \"\",
+                           \"PipelineLength\":  0,
+                           \"PipelinePosition\":  0,
+                           \"ExpectingInput\":  false,
+                           \"CommandOrigin\":  1,
+                           \"DisplayScriptPosition\":  null
+                       },
+    \"ScriptStackTrace\":  \"at Get-ConfigurationFunctionDefinition, C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandlerConfigurationManager.psm1: line 1023\\r\\nat Invoke-DscExtensionConfigurationPackage, C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandlerConfigurationManager.psm1: line 84\\r\\nat Invoke-DscExtensionProcessConfiguration, C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandler.psm1: line 436\\r\\nat \\u003cScriptBlock\\u003e, C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandler.psm1: line 350\\r\\nat Invoke-DscExtensionSingleInstance, C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandler.psm1: line 969\\r\\nat Invoke-DscExtension, C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\DscExtensionHandler.psm1: line 202\\r\\nat \\u003cScriptBlock\\u003e, C:\\\\Packages\\\\Plugins\\\\Microsoft.Powershell.DSC\\\\2.26.1.0\\\\bin\\\\enable.ps1: line 42\\r\\nat \\u003cScriptBlock\\u003e, \\u003cNo file\\u003e: line 1\",
+    \"PipelineIterationInfo\":  [
+
+                              ]
+}
+[2017-07-14 14:45:13Z] Settings handler status to 'error' (C:\\Packages\\Plugins\\Microsoft.Powershell.DSC\\2.26.1.0\\Status\\0.status)
