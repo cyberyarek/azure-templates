@@ -88,8 +88,8 @@
             "type"         : "String"
         },
         "dscModulesUrl": {
+            "defaultValue" : "https://github.com/cyberyarek/azure-templates/raw/master/public-ip-load-balancer-n-vms-azure-sql/ContosoWebsite.ps1.zip",
             "type"         : "string",
-            "defaultValue" : "https://github.com/Azure/azure-quickstart-templates/raw/master/dsc-extension-iis-server-windows-vm/ContosoWebsite.ps1.zip",
             "metadata"     : {
                 "description": "URL for the DSC configuration module. NOTE: Can be a Github url(raw) to the zip file"
             }
@@ -129,7 +129,6 @@
         "vWebVmAvailabilitySet"             : "[concat(variables('vWebVmNamePrefix'), '-as')]",
 
         "vWebVmNicPrefix"                   : "[concat(parameters('webTierName'), '-nic')]",
-        "vWebVmDscExtensionName"                 : "dscExtension",
         
         "vSqlServerName"                    : "[replace(replace(concat(resourceGroup().name, parameters('sqlServerNameSuffix')),'-',''),'_','')]",
         "vSqlFireWallRulesName"             : "[concat(variables('vSqlServerName'), '/allowedIPs')]",
@@ -987,6 +986,36 @@
             ]
         },
         {
+            "type"       : "Microsoft.Compute/virtualMachines/extensions",
+            "copy": {
+                  "name"  : "webTierVmDscExtensionCopy",
+                  "count" : "[parameters('webTierVmCount')]",
+            },
+            "name"       : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0'),'/DscExtension-', parameters('dscConfigurationScript'))]",
+            "apiVersion" : "2015-06-15",
+            "location"   : "[parameters('locationPrimary')]",
+            "dependsOn"  : [
+                "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0')))]"
+            ],
+            "properties": {
+                "publisher"               : "Microsoft.Powershell",
+                "type"                    : "DSC",
+                "typeHandlerVersion"      : "2.19",
+                "autoUpgradeMinorVersion" : true,
+                "settings": {
+                    "configuration": {
+                        "url"        : "[parameters('dscModulesUrl')]",
+                        "script"     : "[parameters('dscConfigurationScript')]",
+                        "function"   : "[parameters('dscConfigurationFunction')]",
+                        "Properties" : {
+                            "MachineName" : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0'))]"
+                        }
+                    }
+                },
+                "protectedSettings": null
+            }
+        },
+        {
             "type"       : "Microsoft.Sql/servers",
             "name"       : "[variables('vSqlServerName')]",
             "kind"       : "[parameters('sqlDbKind')]",
@@ -1028,34 +1057,6 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Sql/servers', variables('vSqlServerName'))]"
             ]
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "copy": {
-                  "name"  : "webTierVmCopy",
-                  "count" : "[parameters('webTierVmCount')]",
-            },
-            "name"       : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0'),'/', variables('vWebVmDscExtensionName'))]",
-            "apiVersion" : "2015-06-15",
-            "location"   : "[parameters('locationPrimary')]",
-            "dependsOn"  : [
-                "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0')))]"
-            ],
-            "properties": {
-                "publisher"               : "Microsoft.Powershell",
-                "type"                    : "DSC",
-                "typeHandlerVersion"      : "2.19",
-                "autoUpgradeMinorVersion" : true,
-                "settings": {
-                    "url"        : "[parameters('dscModulesUrl')]",
-                    "script"     : "[parameters('dscConfigurationScript')]",
-                    "function"   : "[parameters('dscConfigurationFunction')]",
-                    "Properties" : {
-                        "MachineName" : "[concat(variables('vWebVmNamePrefix'),'-',padleft(copyIndex(1), parameters('namePaddingLength'),'0'))]"
-                    }
-                },
-                "protectedSettings": null
-            }
         }
     ]
 }
