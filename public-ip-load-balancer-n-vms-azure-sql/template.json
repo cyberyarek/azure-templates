@@ -241,477 +241,58 @@
                         }
                     },
                     {
-                        "name": "out-allow-SQL",
+                        "name": "out-allow-Azure-SQL-Gateway-AU-E-Primary",
                         "properties": {
+                            "description"              : "Allow outbound to Azure SQL Gateway AU-East Primary",
                             "protocol"                 : "*",
                             "sourcePortRange"          : "1433",
                             "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "Internet",
-                            "access"                   : "Allow",
-                            "priority"                 : 199,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-13.70.128.0-18",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 13.70.128.0/18",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "13.70.128.0/18",
+                            "destinationAddressPrefix" : "191.238.66.109/32",
                             "access"                   : "Allow",
                             "priority"                 : 200,
                             "direction"                : "Outbound"
                         }
                     },
                     {
-                        "name": "out-allow-AzureDC-191.239.195.0-28",
+                        "name": "out-allow-Azure-SQL-Gateway-AU-E-Secondary",
                         "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.195.0/28",
+                            "description"              : "Allow outbound to Azure SQL Gateway AU-East Secondary",
                             "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
+                            "sourcePortRange"          : "1433",
+                            "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.195.0/28",
+                            "destinationAddressPrefix" : "13.75.149.87/32",
                             "access"                   : "Allow",
-                            "priority"                 : 201,
+                            "priority"                 : 200,
                             "direction"                : "Outbound"
                         }
                     },
                     {
-                        "name": "out-allow-AzureDC-13.73.96.0-19",
+                        "name": "out-allow-Azure-SQL-Gateway-AU-SE-Primary",
                         "properties": {
-                            "description"              : "Allow outbound to Azure 13.73.96.0/19",
+                            "description"              : "Allow outbound to Azure SQL Gateway AU-Southeast Primary",
                             "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
+                            "sourcePortRange"          : "1433",
+                            "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "13.73.96.0/19",
+                            "destinationAddressPrefix" : "191.239.192.109/32",
                             "access"                   : "Allow",
-                            "priority"                 : 202,
+                            "priority"                 : 200,
                             "direction"                : "Outbound"
                         }
                     },
                     {
-                        "name": "out-allow-AzureDC-13.77.0.0-18",
+                        "name": "out-allow-Azure-SQL-Gateway-AU-SE-Secondary",
                         "properties": {
-                            "description"              : "Allow outbound to Azure 13.77.0.0/18",
+                            "description"              : "Allow outbound to Azure SQL Gateway AU-Southeast Secondary",
                             "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
+                            "sourcePortRange"          : "1433",
+                            "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "13.77.0.0/18",
+                            "destinationAddressPrefix" : "13.73.109.251/32",
                             "access"                   : "Allow",
-                            "priority"                 : 203,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-23.101.224.0-19",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 23.101.224.0/19",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "23.101.224.0/19",
-                            "access"                   : "Allow",
-                            "priority"                 : 204,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-40.115.64.0-19",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 40.115.64.0/19",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "40.115.64.0/19",
-                            "access"                   : "Allow",
-                            "priority"                 : 205,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-40.127.64.0-19",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 40.127.64.0/19",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "40.127.64.0/19",
-                            "access"                   : "Allow",
-                            "priority"                 : 206,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.189.192.0-21",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.189.192.0/21",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.189.192.0/21",
-                            "access"                   : "Allow",
-                            "priority"                 : 207,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.189.200.0-24",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.189.200.0/24",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.189.200.0/24",
-                            "access"                   : "Allow",
-                            "priority"                 : 208,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.189.201.0-28",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.189.201.0/28",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.189.201.0/28",
-                            "access"                   : "Allow",
-                            "priority"                 : 209,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.189.208.0-20",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.189.208.0/20",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.189.208.0/20",
-                            "access"                   : "Allow",
-                            "priority"                 : 210,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.189.224.0-20",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.189.224.0/20",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.189.224.0/20",
-                            "access"                   : "Allow",
-                            "priority"                 : 211,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.189.240.0-24",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.189.240.0/24",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.189.240.0/24",
-                            "access"                   : "Allow",
-                            "priority"                 : 212,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.189.248.0-21",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.189.248.0/21",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.189.248.0/21",
-                            "access"                   : "Allow",
-                            "priority"                 : 213,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.239.132.0-25",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.239.132.0/25",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.239.132.0/25",
-                            "access"                   : "Allow",
-                            "priority"                 : 214,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.239.132.128-27",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.239.132.128/27",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.239.132.128/27",
-                            "access"                   : "Allow",
-                            "priority"                 : 215,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.243.64.0-19",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.243.64.0/19",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.243.64.0/19",
-                            "access"                   : "Allow",
-                            "priority"                 : 216,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.243.96.0-20",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.243.96.0/20",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.243.96.0/20",
-                            "access"                   : "Allow",
-                            "priority"                 : 217,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.243.112.0-21",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.243.112.0/21",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.243.112.0/21",
-                            "access"                   : "Allow",
-                            "priority"                 : 218,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.243.120.0-24",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.243.120.0/24",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.243.120.0/24",
-                            "access"                   : "Allow",
-                            "priority"                 : 219,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.245.20.0-26",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.245.20.0/26",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.245.20.0/26",
-                            "access"                   : "Allow",
-                            "priority"                 : 220,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.245.20.80-28",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.245.20.80/28",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.245.20.80/28",
-                            "access"                   : "Allow",
-                            "priority"                 : 221,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.245.20.96-28",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.245.20.96/28",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.245.20.96/28",
-                            "access"                   : "Allow",
-                            "priority"                 : 222,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-52.253.204.0-22",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 52.253.204.0/22",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "52.253.204.0/22",
-                            "access"                   : "Allow",
-                            "priority"                 : 223,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-104.46.28.0-24",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 104.46.28.0/24",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "104.46.28.0/24",
-                            "access"                   : "Allow",
-                            "priority"                 : 224,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-104.209.64.0-20",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 104.209.64.0/20",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "104.209.64.0/20",
-                            "access"                   : "Allow",
-                            "priority"                 : 225,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-191.239.160.0-19",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.160.0/19",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.160.0/19",
-                            "access"                   : "Allow",
-                            "priority"                 : 226,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-191.239.192.0-25",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.192.0/25",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.192.0/25",
-                            "access"                   : "Allow",
-                            "priority"                 : 227,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-191.239.192.128-27",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.192.128/27",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.192.128/27",
-                            "access"                   : "Allow",
-                            "priority"                 : 228,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-191.239.192.160-28",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.192.160/28",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.192.160/28",
-                            "access"                   : "Allow",
-                            "priority"                 : 229,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-191.239.192.192-27",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.192.192/27",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.192.192/27",
-                            "access"                   : "Allow",
-                            "priority"                 : 230,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-191.239.193.0-24",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.193.0/24",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.193.0/24",
-                            "access"                   : "Allow",
-                            "priority"                 : 231,
-                            "direction"                : "Outbound"
-                        }
-                    },
-                    {
-                        "name": "out-allow-AzureDC-191.239.194.0-24",
-                        "properties": {
-                            "description"              : "Allow outbound to Azure 191.239.194.0/24",
-                            "protocol"                 : "*",
-                            "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "*",
-                            "sourceAddressPrefix"      : "VirtualNetwork",
-                            "destinationAddressPrefix" : "191.239.194.0/24",
-                            "access"                   : "Allow",
-                            "priority"                 : 232,
+                            "priority"                 : 200,
                             "direction"                : "Outbound"
                         }
                     },
@@ -1000,7 +581,7 @@
             "properties": {
                 "publisher"               : "Microsoft.Powershell",
                 "type"                    : "DSC",
-                "typeHandlerVersion"      : "2.19",
+                "typeHandlerVersion"      : "2.20",
                 "autoUpgradeMinorVersion" : true,
                 "settings": {
                     "configuration": {
