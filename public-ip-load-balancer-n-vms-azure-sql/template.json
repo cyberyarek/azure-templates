@@ -236,7 +236,7 @@
                             "sourceAddressPrefix"      : "Internet",
                             "destinationAddressPrefix" : "*",
                             "access"                   : "Deny",
-                            "priority"                 : 398,
+                            "priority"                 : 4000,
                             "direction"                : "Inbound"
                         }
                     },
@@ -264,7 +264,7 @@
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "13.75.149.87/32",
                             "access"                   : "Allow",
-                            "priority"                 : 200,
+                            "priority"                 : 201,
                             "direction"                : "Outbound"
                         }
                     },
@@ -278,7 +278,7 @@
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "191.239.192.109/32",
                             "access"                   : "Allow",
-                            "priority"                 : 200,
+                            "priority"                 : 202,
                             "direction"                : "Outbound"
                         }
                     },
@@ -292,7 +292,7 @@
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "13.73.109.251/32",
                             "access"                   : "Allow",
-                            "priority"                 : 200,
+                            "priority"                 : 203,
                             "direction"                : "Outbound"
                         }
                     },
@@ -301,11 +301,11 @@
                         "properties": {
                             "protocol"                 : "*",
                             "sourcePortRange"          : "*",
-                            "destinationPortRange"     : "80",
+                            "destinationPortRange"     : "*",
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "Internet",
                             "access"                   : "Deny",
-                            "priority"                 : 4001,
+                            "priority"                 : 4000,
                             "direction"                : "Outbound"
                         }
                     }
