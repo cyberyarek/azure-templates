@@ -10,6 +10,10 @@
             "defaultValue" : "web",
             "type"         : "String"
         },
+        "webTierAllowedIpRange": {
+            "defaultValue" : "*",
+            "type"         : "String"
+        },
         "locationPrimary": {
             "defaultValue" : "australiasoutheast",
             "type"         : "String"
@@ -119,7 +123,8 @@
         "vWebVmLoadBalancer"                : "[concat(parameters('webTierName'), '-lb')]",
         "vWebVmLoadBalancerFE"              : "[concat(variables('vWebVmLoadBalancer'),'-fe')]",
         "vWebVmLoadBalancerBE"              : "[concat(variables('vWebVmLoadBalancer'),'-be')]",
-        "vWebVmLoadBalancerProbe"           : "[concat(variables('vWebVmLoadBalancer'),'-tcp-probe-80')]",
+        "vWebVmLoadBalancerProbeHttp"       : "[concat(variables('vWebVmLoadBalancer'),'-tcp-probe-80')]",
+        "vWebVmLoadBalancerProbeHttps"      : "[concat(variables('vWebVmLoadBalancer'),'-tcp-probe-443')]",
         "vWebVmLoadBalancerNatInRule"       : "[concat(variables('vWebVmLoadBalancer'),'-nat-in')]",
         "vWebVmLoadBalancerNatInRuleRdp"    : "[concat(variables('vWebVmLoadBalancerNatInRule'),'-rdp')]",
         "vWebVmLoadBalancerPublicIP"        : "[concat(variables('vWebVmLoadBalancer'),'-pip')]",
@@ -132,6 +137,7 @@
         
         "vSqlServerName"                    : "[replace(replace(concat(resourceGroup().name, parameters('sqlServerNameSuffix')),'-',''),'_','')]",
         "vSqlFireWallRulesName"             : "[concat(variables('vSqlServerName'), '/allowedIPs')]",
+        "vSqlFireWallConnectionPoliciesName": "[concat(variables('vSqlServerName'), '/connectionPolicies')]",
 
         "vVnetWebSubnetName"                : "[concat(parameters('vnetName'), '-web')]",
         "vVnetWebSubnetNSG"                 : "[concat(variables('vVnetWebSubnetName'), '-NSG')]",
@@ -190,7 +196,7 @@
                         "properties": {
                             "description"              : "Allow HTTP",
                             "protocol"                 : "Tcp",
-                            "sourcePortRange"          : "*",
+                            "sourcePortRange"          : "[parameters('webTierAllowedIpRange')]",
                             "destinationPortRange"     : "80",
                             "sourceAddressPrefix"      : "Internet",
                             "destinationAddressPrefix" : "*",
@@ -202,9 +208,9 @@
                     {
                         "name": "in-allow-https",
                         "properties": {
-                            "description"              : "Allow HTTP",
+                            "description"              : "Allow HTTPS",
                             "protocol"                 : "Tcp",
-                            "sourcePortRange"          : "*",
+                            "sourcePortRange"          : "[parameters('webTierAllowedIpRange')]",
                             "destinationPortRange"     : "443",
                             "sourceAddressPrefix"      : "Internet",
                             "destinationAddressPrefix" : "*",
@@ -218,7 +224,7 @@
                         "properties": {
                             "description"               : "Allow RDP",
                             "protocol"                  : "Tcp",
-                            "sourcePortRange"           : "*",
+                            "sourcePortRange"           : "[parameters('webTierAllowedIpRange')]",
                             "destinationPortRange"      : "3389",
                             "sourceAddressPrefix"       : "Internet",
                             "destinationAddressPrefix"  : "*",
@@ -245,7 +251,7 @@
                         "properties": {
                             "description"              : "Allow outbound to Azure SQL Gateway AU-East Primary",
                             "protocol"                 : "*",
-                            "sourcePortRange"          : "1433",
+                            "sourcePortRange"          : "*",
                             "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "191.238.66.109/32",
@@ -259,7 +265,7 @@
                         "properties": {
                             "description"              : "Allow outbound to Azure SQL Gateway AU-East Secondary",
                             "protocol"                 : "*",
-                            "sourcePortRange"          : "1433",
+                            "sourcePortRange"          : "*",
                             "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "13.75.149.87/32",
@@ -273,7 +279,7 @@
                         "properties": {
                             "description"              : "Allow outbound to Azure SQL Gateway AU-Southeast Primary",
                             "protocol"                 : "*",
-                            "sourcePortRange"          : "1433",
+                            "sourcePortRange"          : "*",
                             "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "191.239.192.109/32",
@@ -287,7 +293,7 @@
                         "properties": {
                             "description"              : "Allow outbound to Azure SQL Gateway AU-Southeast Secondary",
                             "protocol"                 : "*",
-                            "sourcePortRange"          : "1433",
+                            "sourcePortRange"          : "*",
                             "destinationPortRange"     : "1433",
                             "sourceAddressPrefix"      : "VirtualNetwork",
                             "destinationAddressPrefix" : "13.73.109.251/32",
@@ -420,7 +426,7 @@
                 ],
                 "loadBalancingRules": [
                     {
-                        "name"       : "[concat(variables('vWebVmLoadBalancer'),'-rule-tcp')]",
+                        "name"       : "[concat(variables('vWebVmLoadBalancer'),'-rule-tcp-80')]",
                         "properties" : {
                             "protocol"             : "Tcp",
                             "frontendPort"         : 80,
@@ -435,17 +441,47 @@
                                 "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/backendAddressPools/',variables('vWebVmLoadBalancerBE'))]"
                             },
                             "probe"                : {
-                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/probes/',variables('vWebVmLoadBalancerProbe'))]"
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/probes/',variables('vWebVmLoadBalancerProbeHttp'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name"       : "[concat(variables('vWebVmLoadBalancer'),'-rule-tcp-443')]",
+                        "properties" : {
+                            "protocol"             : "Tcp",
+                            "frontendPort"         : 443,
+                            "backendPort"          : 443,
+                            "enableFloatingIP"     : false,
+                            "idleTimeoutInMinutes" : 4,
+                            "loadDistribution"     : "Default",
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/frontendIPConfigurations/',variables('vWebVmLoadBalancerFE'))]"
+                            },
+                            "backendAddressPool"   : {
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/backendAddressPools/',variables('vWebVmLoadBalancerBE'))]"
+                            },
+                            "probe"                : {
+                                "id": "[concat(resourceId('Microsoft.Network/loadbalancers', variables('vWebVmLoadBalancer')),'/probes/',variables('vWebVmLoadBalancerProbeHttps'))]"
                             }
                         }
                     }
+
                 ],
                 "probes": [
                     {
-                        "name"       : "[variables('vWebVmLoadBalancerProbe')]",
+                        "name"       : "[variables('vWebVmLoadBalancerProbeHttp')]",
                         "properties" : {
                             "protocol"          : "Tcp",
                             "port"              : 80,
+                            "intervalInSeconds" : 15,
+                            "numberOfProbes"    : 2
+                        }
+                    },
+                    {
+                        "name"       : "[variables('vWebVmLoadBalancerProbeHttps')]",
+                        "properties" : {
+                            "protocol"          : "Tcp",
+                            "port"              : 443,
                             "intervalInSeconds" : 15,
                             "numberOfProbes"    : 2
                         }
@@ -634,6 +670,19 @@
             "properties" : {
                 "startIpAddress" : "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('vWebVmLoadBalancerPublicIP'))).ipAddress]",
                 "endIpAddress"   : "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('vWebVmLoadBalancerPublicIP'))).ipAddress]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('vSqlServerName'))]"
+            ]
+        },
+        {
+            "type"       : "Microsoft.Sql/servers/connectionPolicies",
+            "name"       : "[variables('vSqlFireWallConnectionPoliciesName')]",
+            "apiVersion" : "2014-04-01-preview",
+            "location"   : "[parameters('locationPrimary')]",
+            "scale"      : null,
+            "properties" : {
+                "connectionType": "Proxy"
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Sql/servers', variables('vSqlServerName'))]"
